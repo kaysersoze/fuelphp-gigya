@@ -123,14 +123,13 @@ class GigyaAccount extends GigyaAPI
 	}
 	
 	public function login($username_or_email, $password)
-	{
+	{	
 		$params = array(
 			'loginID' => $username_or_email,
 			'password' => $password
 		);
-		$this->_processRequest('login', $params, true);
 		
-		\Log::Error(print_r($this, true));
+		$this->_processRequest('login', $params, true);
 	}
 	
 	public function notifyLogin()
@@ -138,9 +137,22 @@ class GigyaAccount extends GigyaAPI
 		
 	}
 	
-	public function logout()
+	public function logout($uid, $context_id = null)
 	{
+		if(empty($uid)) 
+		{
+			throw new \Exception(
+				0,
+				'UID is required.'
+			);
+		}
+		$params['UID'] = $uid;
+		if(!empty($context_id)) 
+		{
+			$params['cid'] = $context_id;
+		}
 		
+		$this->_processRequest('logout', $params);
 	}
 	
 	/**
@@ -202,11 +214,89 @@ class GigyaAccount extends GigyaAPI
 		{
 			$params['regToken'] = $reg_token;
 		}
+		
+		$this->_processRequest('getAccountInfo', $params);
 	}
 	
-	public function setAccountInfo()
-	{
+	/**
+	 * Sets account data into a user's account.
+	 * http://developers.gigya.com/037_API_reference/020_Accounts/accounts.setAccountInfo
+	 */
+	public function setAccountInfo($uid = null, $reg_token = null,
+		$profile = array(), $data = array(), $old_password = null,
+		$new_password = null, $username = null, 
+		$add_login_emails = null, $remove_login_emails = null,
+		$secret_question = null, $secret_answer = null,
+		$is_active = null, $is_verified = null
+	) {
+		if(empty($uid) && empty($reg_token)) 
+		{
+			throw new \Exception(
+				0,
+				'UID or regToken is required.'
+			);
+		}
+		if(!empty($uid)) 
+		{
+			$params['UID'] = $uid;
+		}
+		if(!empty($reg_token)) 
+		{
+			$params['regToken'] = $reg_token;
+		}
+		if(!empty($profile)) 
+		{
+			$params['profile'] = json_encode($profile);
+		}
+		if(!empty($data)) 
+		{
+			$params['data'] = json_encode($data);
+		}
+		if(!empty($new_password)) 
+		{
+			if(!empty($old_password))
+			{
+				$params['oldPassword'] = $old_password;
+				$params['newPassword'] = $new_password;
+			}
+			else
+			{
+				throw new \Exception(
+					0,
+					'You must include previous password to update to a new password.'
+				);
+			}
+		}
+		if(!empty($username)) 
+		{
+			$params['username'] = $username;
+		}
+		if(!empty($add_login_emails)) 
+		{
+			$params['addLoginEmails'] = $add_login_emails;
+		}
+		if(!empty($remove_login_emails)) 
+		{
+			$params['removeLoginEmails'] = $remove_login_emails;
+		}
+		if(!empty($secret_question)) 
+		{
+			$params['secretQuestion'] = $secret_question;
+		}
+		if(!empty($secret_answer)) 
+		{
+			$params['secretAnswer'] = $secret_answer;
+		}
+		if(!empty($is_active)) 
+		{
+			$params['isActive'] = $is_active;
+		}
+		if(!empty($is_verified)) 
+		{
+			$params['isVerified'] = $is_verified;
+		}
 		
+		$this->_processRequest('setAccountInfo', $params, true);
 	}
 	
 	public function importProfilePhoto()
